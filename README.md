@@ -37,22 +37,27 @@ Google cloud: Go to https://console.cloud.google.com/ and create a new project.
 Enable required API services Gmail API, Google Drive API and Google Sheets API
 
 Step 2:
+
 Create OAUTH credentials: Follow instructions then save client key and secret key
 
 Step 3: 
+
 Visit https://docs.n8n.io/integrations/builtin/credentials/sendemail/gmail/#generate-an-app-password
 and follow instructions on how to set up SMPT
 
 Step 4:
+
 In Google Drive, create a folder called “Invoice Storage” and copy its folder ID from the URL to input into the drive node. 
 Create a Google Sheet called “Reconciliation Sheet” with four column headers: “Invoice date”, “Invoice Description”, “Total price”, and “Document”. 
 Copy the spreadsheet ID from its URL to input into the sheets node. In Gmail settings, create the lables that you need for email classification.
 
 Step 5:
+
 Visit https://aistudio.google.com/ then click on the get api key and save it
 
 Step 6:
-Import and configure by downloading the json file titled emailassistant from the repository and improt into an n8n instance. 
+
+Download the json file from the repository and import into an n8n instance. 
 Configure three credentials using the IDs and keys you saved: 
 Gmail OAuth2 (Client ID + Secret), 
 Google Drive OAuth2 (same Client ID + Secret), 
