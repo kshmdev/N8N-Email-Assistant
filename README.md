@@ -32,6 +32,7 @@ During business hours it creates a draft response for you ready to view and send
 Setup Instructions
 
 Step 1:
+
 Google cloud: Go to https://console.cloud.google.com/ and create a new project. 
 Enable required API services Gmail API, Google Drive API and Google Sheets API
 
