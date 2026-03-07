@@ -14,22 +14,22 @@ your GMAIL inbox tidy and manageable.
 
 # How it works ?
 
-# Email Checking: 
+Email Checking: 
 Every hour the workflow checks for unread emails.
 
-# Classification: 
+Classification: 
 Gemini analyses incoming messages that are unread and classifies them into different categories.
 
-# Invoice processing: 
+Invoice processing: 
 Emails that contain an invoice attachment go through invoice processing. 
 Gemini analyses, extracts the pdf, uploads it to google sheets with the relevant data extracted
 
-# Smart respones: 
+Smart respones: 
 For emails that require replies the workflow checks if it is business hours or weekend hours. 
 During weekeend and off hours it sends an automatic reply. 
 During business hours it creates a draft response for you ready to view and send.
 
-# Setup Instructions
+Setup Instructions
 
 Step 1
 Google cloud: Go to https://console.cloud.google.com/ and create a new project. 
