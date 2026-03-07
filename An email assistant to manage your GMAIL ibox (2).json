@@ -1,0 +1,1301 @@
+{
+  "name": "An email assistant to manage your GMAIL ibox",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "readStatus": "unread"
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "id": "21d42e19-c9e4-4769-8130-e042d5939975",
+      "name": "Gmail Trigger1",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "position": [
+        -3424,
+        1392
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4cca07a2-6a70-4011-a025-65246e652fb9",
+              "name": "url_to_drive_folder",
+              "type": "string",
+              "value": "1fCWCdqrFP3WrjjLc-gJtxMaiaF5lh8Ko"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "41b7aafd-1831-45be-be80-79f1ab78461d",
+      "name": "Setup",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -2016,
+        720
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "uploadType",
+              "value": "media"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "={{ $binary.attachment_0.mimeType === \"application/pdf\"\n     ? \"attachment_0\"\n     : \"attachment_1\" }}",
+        "options": {}
+      },
+      "id": "d14c33aa-5d4b-4c65-a291-0db5763ce74f",
+      "name": "Upload PDF to Drive",
+      "type": "n8n-nodes-base.httpRequest",
+      "maxTries": 5,
+      "position": [
+        -1472,
+        448
+      ],
+      "retryOnFail": true,
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "newUpdatedFileName": "={{ $('Setup').item.json.subject }}_invoice_{{ $now.format('yyyy-MM-dd') }}.pdf",
+        "options": {}
+      },
+      "id": "ee752656-492b-49a7-800a-093ccf14d49f",
+      "name": "Rename file",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        -1248,
+        448
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1M_EIQoKTx3VF6rW7sp3nAGfQbgOQ_D-l",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1M_EIQoKTx3VF6rW7sp3nAGfQbgOQ_D-l",
+          "cachedResultName": "Invoice Storage"
+        }
+      },
+      "id": "18a6dc4f-e198-4d87-a155-2e3276fea74b",
+      "name": "Move to the correct folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        -1008,
+        448
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id }}"
+      },
+      "id": "29347144-aa8e-4b0d-a2d6-933b3100cbc6",
+      "name": "Gmail1",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -832,
+        688
+      ],
+      "webhookId": "556cbee3-8de0-4645-9e91-e7c0c252f2ab",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "id": "e080c752-4783-43ab-af29-e15bf41485bf",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        -224,
+        400
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "options": {}
+      },
+      "id": "0030eab2-55aa-47fa-9c03-f1f52c460edd",
+      "name": "Google Drive1",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        -704,
+        448
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "jsonSchema": "{\n  \"Invoice date\": { \"type\": \"date\" },\n  \"Invoice description\": { \"type\": \"string\" },\n  \"Total price\": { \"type\": \"number\" },\n  \"Document\": { \"type\": \"string\" }\n}"
+      },
+      "id": "6805d3f7-3957-43f9-ae30-cec1ee344e01",
+      "name": "Structured Output Parser1",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        224,
+        640
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1hTh_Y7wXsNxQvY72H3rhwpuTFnFc2uVEVYDlCGz-7y8",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hTh_Y7wXsNxQvY72H3rhwpuTFnFc2uVEVYDlCGz-7y8/edit?usp=drivesdk",
+          "cachedResultName": "Reconciliation Sheet"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hTh_Y7wXsNxQvY72H3rhwpuTFnFc2uVEVYDlCGz-7y8/edit#gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "value": {},
+          "schema": [
+            {
+              "id": "Invoice date",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Invoice date",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Invoice Description",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Invoice Description",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total price",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Total price",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fichero",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Fichero",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "autoMapInputData",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "68664dfb-3307-4f8a-b887-4a0fd06e89e4",
+      "name": "Append to Reconciliation Sheet1",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        560,
+        464
+      ],
+      "typeVersion": 4.3
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json.output }}",
+        "options": {}
+      },
+      "id": "9e875b7e-59f6-496d-8e51-6a6aa0fd802c",
+      "name": "Map Output1",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        368,
+        464
+      ],
+      "typeVersion": 3.3
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Given the following invoice in the <invoice> xml tags, extract the following information as listed below.\nIf you cannot the information for a specific item, then leave blank and skip to the next. \n\n* Invoice date\n* Invoice Description: This is the descriptiofor what the invoice is for which is usually found on the invocie description line in the invoice \n* Total price\n* File: =HYPERLINK(\"https://drive.google.com/file/d/{{ $('Move to the correct folder').item.json.id }}/view\", \" Document\")\n\n\n<invoice>{{ $json.text }}</invoice>",
+        "hasOutputParser": true
+      },
+      "id": "821b2729-389a-4f94-8be2-72a5e264c069",
+      "name": "Apply Data Extraction Rules1",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        48,
+        160
+      ],
+      "typeVersion": 1.4
+    },
+    {
+      "parameters": {
+        "content": "\n\n\n\n\n\n\n\n\n\n\n\n**Google gemini is used to extract the information. You can change your ai model or provider here**",
+        "height": 246,
+        "width": 192
+      },
+      "id": "f2c5d0cc-760d-4145-b67c-42cbe92916e1",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        624
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "ceb063aa-caa9-4d35-8a89-520f75943a8f",
+      "name": "Google Gemini Chat Model3",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        0,
+        640
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CbZ2fnYWvyOTBTFn",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputText": "=Email Subject:  {{ $json.headers.subject }}\nEmail Body: {{ $json.snippet }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Financial",
+              "description": "Emails from financial institutions such as ASB, IRD etc or an email that contain any information related to finance or anything about financials being mentioned or that conntain invoices either as an attached document or in writing"
+            },
+            {
+              "category": "Primary",
+              "description": "Personal messages "
+            },
+            {
+              "category": "Promotions",
+              "description": "Marketing, interests, social and political causes, and other promotional emails"
+            },
+            {
+              "category": "Social",
+              "description": "Emails from social networks, media-sharing sites, dating services and other social sites besides LinkedIn"
+            },
+            {
+              "category": "Updates",
+              "description": "Automated messages that may not need immediate attention will be shown here. These can include confirmations, notifications, statements, and reminders."
+            },
+            {
+              "category": "Misc",
+              "description": "Any email that does not fit in any of the other categories"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "422934fd-b640-4811-83cb-e3fc74cd9f98",
+      "name": "Text Classifier1",
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "position": [
+        -3024,
+        1328
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "85d86b29-e0e2-4b51-8186-505683bdf7c7",
+      "name": "Google Gemini Chat Model4",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        -3008,
+        1760
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CbZ2fnYWvyOTBTFn",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id }}",
+        "labelIds": [
+          "CATEGORY_PERSONAL"
+        ]
+      },
+      "id": "00ee98a5-2000-4ff0-96e7-772839e97561",
+      "name": "Add label to message1",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -1040,
+        1264
+      ],
+      "webhookId": "801c6092-315d-4a91-9972-fa28d64baf9b",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}",
+        "simple": false,
+        "options": {}
+      },
+      "id": "bc058373-5b49-4f85-927c-3269f3806c1f",
+      "name": "Get Unread Email",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -672,
+        1232
+      ],
+      "webhookId": "73120a19-5d50-4b75-9a45-b27266176d78",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "threadId",
+              "type": "string",
+              "value": "={{ $json.threadId }}"
+            },
+            {
+              "name": "id",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "name": "From",
+              "type": "string",
+              "value": "={{ $json.headers.from }}"
+            },
+            {
+              "name": "message",
+              "type": "string",
+              "value": "={{ $json.text }}"
+            },
+            {
+              "name": "subject",
+              "type": "string",
+              "value": "={{ $json.subject }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "72788b71-10be-4909-abc1-6dc1893f3a73",
+      "name": "Get Required Fields",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -320,
+        1184
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"isReply\": {\n      \"type\": \"boolean\",\n      \"description\": \"Whether the email requires a reply\"\n    },\n    \"response\": {\n      \"type\": \"string\",\n      \"description\": \"The drafted reply text if isReply is true, otherwise empty\"\n    }\n  },\n  \"required\": [\"isReply\", \"response\"]\n}\n"
+      },
+      "id": "72d2e678-78e4-4bef-bce6-3d5942a0e555",
+      "name": "Structured Output",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        176,
+        1408
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "loose"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.output.isReply }}",
+              "rightValue": "true"
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "07b613c1-6bfb-479f-9545-bf15b8c5a623",
+      "name": "Can AI Agent Respond?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        352,
+        1184
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $('Get Required Fields').item.json.subject }}",
+        "message": "={{ $json.output.response }}",
+        "options": {
+          "replyTo": "={{ $('Gmail Trigger').item.json.From }}",
+          "threadId": "={{ $('Get Required Fields').item.json.threadId }}"
+        }
+      },
+      "id": "32b25914-63a6-4851-af7e-66b3b773fd12",
+      "name": "Create a draft1",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        576,
+        1168
+      ],
+      "webhookId": "1e6f226d-b0d9-4517-9a95-c835276d3a30",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "1d9f1ebb-2bf3-44f7-9a5a-41498f23a31b",
+      "name": "Google Gemini Chat Model2",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        0,
+        1392
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CbZ2fnYWvyOTBTFn",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id }}",
+        "labelIds": [
+          "CATEGORY_PROMOTIONS"
+        ]
+      },
+      "id": "37b95c97-df66-48c6-a535-c5a6b2f153a4",
+      "name": "Add label to message",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -2000,
+        1312
+      ],
+      "webhookId": "801c6092-315d-4a91-9972-fa28d64baf9b",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id }}",
+        "labelIds": [
+          "CATEGORY_PERSONAL"
+        ]
+      },
+      "id": "6afbbe14-84bb-476f-ba6f-1269f6e1b24e",
+      "name": "Add label to message6",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -1648,
+        1424
+      ],
+      "webhookId": "801c6092-315d-4a91-9972-fa28d64baf9b",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id }}"
+      },
+      "id": "2242a3cc-cd81-487b-af55-5cf5ff2a3c5c",
+      "name": "Mark a message as read2",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -1360,
+        1424
+      ],
+      "webhookId": "9bae8b22-01b1-4435-9313-be66a10985c4",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id }}",
+        "labelIds": [
+          "CATEGORY_UPDATES"
+        ]
+      },
+      "id": "9af5b1fc-429d-4361-9e88-97de68825073",
+      "name": "Add label to message4",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -1312,
+        1600
+      ],
+      "webhookId": "801c6092-315d-4a91-9972-fa28d64baf9b",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id }}"
+      },
+      "id": "29159fff-1876-4f39-8554-7446ae873051",
+      "name": "Mark a message as read",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -1072,
+        1600
+      ],
+      "webhookId": "6be592f2-cb3e-4617-b3f7-06dcd69131dc",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id }}",
+        "labelIds": [
+          "Label_6915436690256422869"
+        ]
+      },
+      "id": "4896ee1a-1b13-47be-91a7-f08362a1329e",
+      "name": "Add label to message5",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -2336,
+        1632
+      ],
+      "webhookId": "801c6092-315d-4a91-9972-fa28d64baf9b",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "markAsRead",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id }}"
+      },
+      "id": "6d1b2cd9-480d-4e68-a80e-76e63ca84e93",
+      "name": "Mark a message as read1",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -2096,
+        1696
+      ],
+      "webhookId": "08c34658-52db-49ef-bc39-42e79485396b",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 1,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "id": "229200d1-ec13-4970-ae0e-2c8e17da0bdf",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "leftValue": "={{ $('Gmail Trigger1').item.json.headers['content-type'] }}",
+              "rightValue": "multipart/mixed"
+            },
+            {
+              "id": "new-condition",
+              "operator": {
+                "type": "boolean",
+                "operation": "isNotEmpty"
+              },
+              "leftValue": "={{ $json.attachments }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e73f663b-9af7-4f61-b0c8-5bb70c78331f",
+      "name": "Emails with invoice attachments",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -1712,
+        720
+      ],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date();\nconst dayOfWeek = now.getDay(); // 0=Sunday, 6=Saturday\nconst hour = now.getHours();\n\n// Check if weekend (Saturday=6 or Sunday=0)\nconst isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);\n\n// Check if weekday after 5pm (Monday-Friday = 1-5, hour >= 17)\nconst isWeekdayAfter5pm = (dayOfWeek >= 1 && dayOfWeek <= 5 && hour >= 17);\n\n// Determine if we should send auto-reply\nconst shouldReply = isWeekend || isWeekdayAfter5pm;\n\n// Add logic results to each item\nreturn $input.all().map(item => {\n  return {\n    json: {\n      ...item.json,\n      isWeekend: isWeekend,\n      isWeekdayAfter5pm: isWeekdayAfter5pm,\n      shouldReply: shouldReply,\n      replyType: isWeekend ? 'weekend' : 'afterhours'\n    }\n  };\n});"
+      },
+      "id": "6db276b5-6c91-4615-99fb-8cc0bd15bfec",
+      "name": "Check Time Logic",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -2208,
+        1184
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ true }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "5c4556fc-9baa-4cc2-8ece-6a1ff29cee41",
+      "name": "Should Send Reply?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -1856,
+        1152
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.replyType }}",
+              "value2": "weekend"
+            }
+          ]
+        }
+      },
+      "id": "75f2a30f-d0e4-4bda-8778-a48561b4da8d",
+      "name": "Check Reply Type",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -1568,
+        912
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Gmail Trigger1').item.json.From }}",
+        "toEmail": "={{ $('Gmail Trigger1').item.json.To }}",
+        "subject": "Out of Office",
+        "html": "Hi, it is the weekend and I am out of office and will reply to you as soon as possible. Enjoy your weekend.\n\nCheers",
+        "options": {}
+      },
+      "id": "7354f1b2-cff1-4bc1-a7da-aaa6fab2e558",
+      "name": "Send Weekend Auto-Reply",
+      "type": "n8n-nodes-base.emailSend",
+      "position": [
+        -1104,
+        880
+      ],
+      "webhookId": "63766102-df28-4ee8-a0bf-28fd57875626",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "fromEmail": "user@example.com",
+        "toEmail": "={{ $('Gmail Trigger1').item.json.To }}",
+        "subject": "=Out of Office: {{ $('Gmail Trigger1').item.json.Subject }}",
+        "html": "Hi there, \n\nIt is currently after office hours I will reply to you as soon as I am back in the office",
+        "options": {}
+      },
+      "id": "e89cf1bf-52be-4c53-af59-fe2086e2ed9c",
+      "name": "Send After Hours Auto-Reply",
+      "type": "n8n-nodes-base.emailSend",
+      "position": [
+        -1280,
+        1056
+      ],
+      "webhookId": "0498b008-9b45-4a51-8aa3-929db24c524f",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "content": "This piece of logic checks for the time that the email has been received. If it has been received within operating hours then the agent will go onto determining if a draft response is needed. If it has been received outside the operating hours then the an automatic email will be sent",
+        "height": 352,
+        "width": 224
+      },
+      "id": "ac65e535-9c3a-45d5-b427-d62d7d8a48a4",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2256,
+        976
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "Description of template\n\nThis template is for any user who wants an email assistant to sort out and manage their GMAIL inbox including classifying emails into different categories, drafting responses to emails and extracting financial information from any invoices received to save time and manual effort to keep your GMAIL inbox tidy and manageable.\n\nHow it works\n\nThis template works by using the text classifier to categorise incoming emails into your GMAIL inbox. It then uses ai agents to help create draft emails for a response or extract any financial data that you want to extract from an invoice. \n\nHow to set up \n\n- Use this link https://docs.n8n.io/integrations/builtin/credentials/google/ to understand how to get the required credentials to use google services\n- Use this link https://docs.n8n.io/integrations/builtin/credentials/sendemail/gmail/ to understand how to get your SMPT credentials for GMAIL \n\n ",
+        "height": 736,
+        "width": 480
+      },
+      "id": "50733053-b099-4eee-9e7e-ae66b1db35a2",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3136,
+        -112
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger1').item.json.id }}",
+        "labelIds": [
+          "Label_6915436690256422869"
+        ]
+      },
+      "id": "5a730ef8-4c4e-4207-86b8-87046549dbb8",
+      "name": "Add label to message7",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -2480,
+        896
+      ],
+      "webhookId": "801c6092-315d-4a91-9972-fa28d64baf9b",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an assistant that helps draft email replies.\n\nYour task:\n1. Read the email message below:\n\"{{ $json.message }}\"\n\n2. Decide if this is an email that requires a reply.  \n   - If it's spam, a notification, or irrelevant, set `isReply` to false.  \n   - If it's a genuine message that can be replied to, set `isReply` to true.  \n\n3. If `isReply` is true, draft a short and polite reply that:  \n   - Acknowledges the sender.  \n   - Is under 120 words.  \n   - Does not promise action you cannot take.  \n\n4. Return the result **only in valid JSON**, no extra text.\n5. If any questions are are asked around updates on projects or to schedule a time to meet respond like this \"I can always check my calender for a date to meet and would be happy to update you on any project that I am working on at the meeting\"\nIf you need to search the internet to answer a question in their email you may do so but only provide true and correct information from the internet. An example of using the internet could be about opening hours of a place\nJSON format to return:\n{\n  \"isReply\": true | false,\n  \"response\": \"string or empty if isReply is false\"\n}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "2012ea94-9ace-4115-b160-438759282315",
+      "name": "Draft Response Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        0,
+        1184
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "content": "#AI draft agent\n\nThis agent uses google gemini to determine whether or not to draft a response to a message in GMAIL. This is where you can change the tone and style to suit your needs. ",
+        "height": 800,
+        "width": 832,
+        "color": 7
+      },
+      "id": "55761854-8c7c-4dfe-98b8-9a5ebb0fee62",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        1088
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# Extraction\n\nThis piece of logic extracts the required data from financial invoices before appending it to a google sheet\n\nChanging the extraction rules would allow you to change the type of data that you want to be extracted from an invoice received in your inbox\n",
+        "height": 384,
+        "width": 336
+      },
+      "id": "0e819ae8-8bd7-4b22-acd8-6e0d96b21657",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        16,
+        -80
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# Text classifier\nThis node in conjunction with google gemini classifies incoming emails into different categories, this node is where you can add and remove categories to suit your needs",
+        "height": 416,
+        "width": 272
+      },
+      "id": "021dad7a-6c3d-49d9-976b-0eb647b011f2",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3040,
+        1152
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Setup": {
+      "main": [
+        [
+          {
+            "node": "Emails with invoice attachments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Output1": {
+      "main": [
+        [
+          {
+            "node": "Append to Reconciliation Sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rename file": {
+      "main": [
+        [
+          {
+            "node": "Move to the correct folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Reply Type": {
+      "main": [
+        [
+          {
+            "node": "Send Weekend Auto-Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send After Hours Auto-Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Time Logic": {
+      "main": [
+        [
+          {
+            "node": "Should Send Reply?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Unread Email": {
+      "main": [
+        [
+          {
+            "node": "Get Required Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier1": {
+      "main": [
+        [
+          {
+            "node": "Add label to message7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Time Logic",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Apply Data Extraction Rules1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Draft Response Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Send Reply?": {
+      "main": [
+        [
+          {
+            "node": "Check Reply Type",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Required Fields": {
+      "main": [
+        [
+          {
+            "node": "Draft Response Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload PDF to Drive": {
+      "main": [
+        [
+          {
+            "node": "Rename file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Response Agent": {
+      "main": [
+        [
+          {
+            "node": "Can AI Agent Respond?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message1": {
+      "main": [
+        [
+          {
+            "node": "Get Unread Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message4": {
+      "main": [
+        [
+          {
+            "node": "Mark a message as read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message5": {
+      "main": [
+        [
+          {
+            "node": "Mark a message as read1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message6": {
+      "main": [
+        [
+          {
+            "node": "Mark a message as read2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message7": {
+      "main": [
+        [
+          {
+            "node": "Setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Can AI Agent Respond?": {
+      "main": [
+        [
+          {
+            "node": "Create a draft1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Draft Response Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Apply Data Extraction Rules1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Apply Data Extraction Rules1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move to the correct folder": {
+      "main": [
+        [
+          {
+            "node": "Gmail1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Drive1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply Data Extraction Rules1": {
+      "main": [
+        [
+          {
+            "node": "Map Output1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Emails with invoice attachments": {
+      "main": [
+        [
+          {
+            "node": "Upload PDF to Drive",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "58976ddb-ec98-4b53-977d-6e0d276a3c1f",
+  "meta": {
+    "instanceId": "0d190ac23213679ce1b511035e5a339ed7e7d4ac2717057d1eb71f2181272d39"
+  },
+  "id": "euj6RcuGolEd2ljqQ0diZ",
+  "tags": []
+}
