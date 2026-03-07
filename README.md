@@ -31,7 +31,11 @@ Enable required API services Gmail API, Google Drive API and Google Sheets API
 # Step 2
 Create OAUTH credentials: Follow instructions then save client key and secret key
 
-# Step 3
+# Step 3 
+Visit https://docs.n8n.io/integrations/builtin/credentials/sendemail/gmail/#generate-an-app-password
+and follow instructions on how to set up SMPT
+
+# Step 4
 In Google Drive, create a folder called “Invoice Storage” and copy its folder ID from the URL to input into the drive node. 
 Create a Google Sheet called “Reconciliation Sheet” with four column headers: “Invoice date”, “Invoice Description”, “Total price”, and “Document”. 
 Copy the spreadsheet ID from its URL to input into the sheets node. In Gmail settings, create the lables that you need for email classification.
