@@ -14,36 +14,43 @@ your GMAIL inbox tidy and manageable.
 
 # How it works ?
 
-Email Checking: Every hour the workflow checks for unread emails
-Classification: Gemini analyses incoming messages that are unread and classifies them into different categories
-Invoice processing: Emails that contain an invoice attachment go through invoice processing. Gemini analyses, extracts the pdf, 
-uploads it to google sheets with the relevant data extracted
-Smart respones: For emails that require replies the workflow checks if it is business hours or weekend hours. 
+# Email Checking: 
+Every hour the workflow checks for unread emails.
+
+# Classification: 
+Gemini analyses incoming messages that are unread and classifies them into different categories.
+
+# Invoice processing: 
+Emails that contain an invoice attachment go through invoice processing. 
+Gemini analyses, extracts the pdf, uploads it to google sheets with the relevant data extracted
+
+# Smart respones: 
+For emails that require replies the workflow checks if it is business hours or weekend hours. 
 During weekeend and off hours it sends an automatic reply. 
 During business hours it creates a draft response for you ready to view and send.
 
-Setup Instructions
+# Setup Instructions
 
-# Step 1
+Step 1
 Google cloud: Go to https://console.cloud.google.com/ and create a new project. 
 Enable required API services Gmail API, Google Drive API and Google Sheets API
 
-# Step 2
+Step 2
 Create OAUTH credentials: Follow instructions then save client key and secret key
 
-# Step 3 
+Step 3 
 Visit https://docs.n8n.io/integrations/builtin/credentials/sendemail/gmail/#generate-an-app-password
 and follow instructions on how to set up SMPT
 
-# Step 4
+Step 4
 In Google Drive, create a folder called “Invoice Storage” and copy its folder ID from the URL to input into the drive node. 
 Create a Google Sheet called “Reconciliation Sheet” with four column headers: “Invoice date”, “Invoice Description”, “Total price”, and “Document”. 
 Copy the spreadsheet ID from its URL to input into the sheets node. In Gmail settings, create the lables that you need for email classification.
 
-# Step 5
+Step 5
 Visit google ai studio and create api key
 
-# Step 6
+Step 6
 Import and configure by downloading the json file titled emailassistant from the repository and improt into an n8n instance. 
 Configure three credentials using the IDs and keys you saved: 
 Gmail OAuth2 (Client ID + Secret), 
