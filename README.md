@@ -63,4 +63,4 @@ Configure three credentials using the IDs and keys you saved:
 Gmail OAuth2 (Client ID + Secret), 
 Google Drive OAuth2 (same Client ID + Secret), 
 Google Gemini API (API key), 
-connect each credential when prompted and authorize access.
+connect each credential in n8n when prompted and follow the prompt instructions and authorize access.
