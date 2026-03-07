@@ -48,7 +48,7 @@ Create a Google Sheet called “Reconciliation Sheet” with four column headers
 Copy the spreadsheet ID from its URL to input into the sheets node. In Gmail settings, create the lables that you need for email classification.
 
 Step 5:
-Visit google ai studio and create api key
+Visit https://aistudio.google.com/ then click on the get api key and save it
 
 Step 6:
 Import and configure by downloading the json file titled emailassistant from the repository and improt into an n8n instance. 
