@@ -57,7 +57,8 @@ Visit https://aistudio.google.com/ then click on the get api key and save it
 
 Step 6:
 
-Download the json file from the repository and import into an n8n instance. 
+Download the json file from the repository and import into an n8n instance or 
+copy and paste the code from the json file. 
 Configure three credentials using the IDs and keys you saved: 
 Gmail OAuth2 (Client ID + Secret), 
 Google Drive OAuth2 (same Client ID + Secret), 
