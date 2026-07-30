@@ -1,66 +1,139 @@
-# N8N-Email-Assistant
+# N8N Email Assistant
 
-# How to install N8N for desktop
-Watch following video on how to install N8N on desktop for free. 
-https://www.youtube.com/watch?v=mJkvTP1q70s
+An n8n workflow that automatically sorts, replies to, and processes your Gmail inbox using Google Gemini.
 
+## What it does
 
-# Description of template
+Every hour, the workflow checks your Gmail inbox for unread messages and:
 
-This template is for any user who wants an email assistant to sort out and manage their GMAIL inbox 
-including classifying emails into different categories, drafting responses to emails and extracting 
-financial information from simple invoices received to save time and manual effort to keep 
-your GMAIL inbox tidy and manageable.
+1. **Classifies** each email into categories using Gemini (Google's AI model).
+2. **Processes invoices** — if an email has an invoice attachment, Gemini reads the PDF, extracts the key details (date, description, amount), and logs them in a Google Sheet.
+3. **Handles replies smartly**:
+   - Outside business hours or on weekends → sends an automatic reply.
+   - During business hours → creates a draft reply in Gmail for you to review and send.
 
-# How it works ?
+## Before you start
 
-Email Checking: 
-Every hour the workflow checks for unread emails.
+You'll need free accounts/access for:
 
-Classification: 
-Gemini analyses incoming messages that are unread and classifies them into different categories.
+- A **Google account** (Gmail, Google Drive, Google Sheets)
+- **Google Cloud Console** access (to create API credentials)
+- **Google AI Studio** access (for a free Gemini API key)
+- An **n8n instance** — either n8n Cloud (hosted for you) or a self-hosted instance (local machine or your own server)
 
-Invoice processing: 
-Emails that contain an invoice attachment go through invoice processing. 
-Gemini analyses, extracts the pdf, uploads it to google sheets with the relevant data extracted
+---
 
-Smart respones: 
-For emails that require replies the workflow checks if it is business hours or weekend hours. 
-During weekeend and off hours it sends an automatic reply. 
-During business hours it creates a draft response for you ready to view and send.
+## Step 1: Set up your n8n instance
 
-Setup Instructions
+You need somewhere to run the workflow. Pick whichever fits you — you don't need both.
 
-Step 1:
+### Option A — n8n Cloud (easiest, no installation)
 
-Google cloud: Go to https://console.cloud.google.com/ and create a new project. 
-Enable required API services Gmail API, Google Drive API and Google Sheets API
+1. Go to [n8n.io](https://n8n.io) and click **Get started for free**.
+2. Sign up and create a workspace. n8n Cloud gives you a hosted instance with a URL like `yourname.app.n8n.cloud` — no setup needed.
+3. Once your workspace loads, you're ready to import the workflow (Step 6).
 
-Step 2:
+### Option B — Self-hosted, local install with Docker
 
-Create OAUTH credentials: Follow instructions then save client key and secret key
+> Note: the old standalone **n8n Desktop App** has been discontinued and is no longer maintained. Docker is the current, supported way to run n8n locally.
 
-Step 3: 
+Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
 
-Visit https://docs.n8n.io/integrations/builtin/credentials/sendemail/gmail/#generate-an-app-password
-and follow instructions on how to set up SMPT
+```bash
+docker volume create n8n_data
 
-Step 4:
+docker run -it --rm \
+  --name n8n \
+  -p 5678:5678 \
+  -v n8n_data:/home/node/.n8n \
+  docker.n8n.io/n8nio/n8n
+```
 
-In Google Drive, create a folder called “Invoice Storage” and copy its folder ID from the URL to input into the drive node. 
-Create a Google Sheet called “Reconciliation Sheet” with four column headers: “Invoice date”, “Invoice Description”, “Total price”, and “Document”. 
-Copy the spreadsheet ID from its URL to input into the sheets node. In Gmail settings, create the lables that you need for email classification.
+Once it's running, open your browser to:
 
-Step 5:
+```
+http://localhost:5678
+```
 
-Visit https://aistudio.google.com/ then click on the get api key and save it
+The `-v n8n_data:/home/node/.n8n` part saves your workflows and credentials in a Docker volume, so they persist even if you stop and restart the container.
 
-Step 6:
+---
 
-Download the json file from the repository and import into an n8n instance or 
-copy and paste the code from the json file. 
-Configure three credentials using the IDs and keys you saved: 
-Gmail OAuth2 (Client ID + Secret), 
-Google Drive OAuth2 (same Client ID + Secret), 
-Google Gemini API (API key), 
-connect each credential in n8n when prompted and follow the prompt instructions and authorize access.
+## Step 2: Create a Google Cloud project and enable APIs
+
+1. Go to [console.cloud.google.com](https://console.cloud.google.com/) and create a new project (or select an existing one).
+2. In the search bar, find and **enable** each of these APIs:
+   - Gmail API
+   - Google Drive API
+   - Google Sheets API
+
+## Step 3: Create OAuth credentials
+
+1. In the same Google Cloud project, go to **APIs & Services → Credentials**.
+2. Click **Create Credentials → OAuth client ID**.
+3. If prompted, configure the **OAuth consent screen** first (choose "External" if you're not on Google Workspace, and add your own email as a test user).
+4. Choose **Web application** as the application type.
+5. Save the **Client ID** and **Client Secret** shown — you'll need both later when connecting Gmail and Google Drive in n8n.
+
+## Step 4: Set up an SMTP app password for Gmail
+
+This lets n8n send emails through your Gmail account.
+
+1. Follow n8n's official guide here: [Gmail SMTP credential setup](https://docs.n8n.io/integrations/builtin/credentials/sendemail/gmail/#generate-an-app-password).
+2. This walks you through generating a Gmail **App Password** (requires 2-Step Verification to be turned on for your Google account).
+3. Save the generated app password — you'll enter it into n8n's SMTP credential later.
+
+## Step 5: Prepare Google Drive, Google Sheets, and Gmail labels
+
+1. **Google Drive**: create a folder named `Invoice Storage`. Open it and copy the folder ID from the browser URL (the string after `/folders/`).
+2. **Google Sheets**: create a new spreadsheet named `Reconciliation Sheet` with these four column headers in row 1:
+   - `Invoice date`
+   - `Invoice Description`
+   - `Total price`
+   - `Document`
+   
+   Copy the spreadsheet ID from its URL (the string between `/d/` and `/edit`).
+3. **Gmail labels**: in Gmail settings, create the labels you want emails classified into (e.g. "Important", "Newsletter", "Invoice", "Needs Reply").
+
+## Step 6: Get your Gemini API key
+
+1. Go to [aistudio.google.com](https://aistudio.google.com/).
+2. Click **Get API key** and generate a new key.
+3. Save the key somewhere safe — you'll paste it into n8n's Gemini credential.
+
+## Step 7: Import the workflow into n8n
+
+1. Download `An email assistant to manage your GMAIL ibox (2).json` from this repository.
+2. In your n8n instance, go to **Workflows → Add workflow → Import from File**, and select the downloaded JSON file.
+   - Alternatively, open the JSON file in a text editor, copy all the contents, and paste it directly into the n8n canvas (n8n will auto-create the workflow from pasted JSON).
+
+## Step 8: Connect your credentials in n8n
+
+The imported workflow will show nodes with a credential warning until you connect them. Set up these three credentials (n8n will prompt you when you click into each relevant node):
+
+- **Gmail (OAuth2)** — enter the Client ID + Client Secret from Step 3.
+- **Google Drive (OAuth2)** — enter the same Client ID + Client Secret from Step 3.
+- **Google Gemini (API Key)** — enter the API key from Step 6.
+
+For each OAuth2 credential, n8n will open a Google sign-in popup — log in and click **Allow** to authorize access.
+
+## Step 9: Configure the workflow nodes
+
+1. Open the **Google Drive** node and paste in your `Invoice Storage` folder ID from Step 5.
+2. Open the **Google Sheets** node and paste in your `Reconciliation Sheet` spreadsheet ID from Step 5.
+3. Open the **classification** node(s) and confirm the Gmail labels match the ones you created in Step 5.
+4. Set up the **SMTP** credential using the app password from Step 4, so automatic replies can be sent.
+
+## Step 10: Activate the workflow
+
+1. Click **Save**.
+2. Toggle the workflow to **Active** in the top-right corner.
+3. The workflow will now run automatically once per hour, checking for unread emails.
+
+---
+
+## Troubleshooting tips
+
+- **Credential errors**: double-check that all three Google APIs (Gmail, Drive, Sheets) are enabled in the same Cloud project used for your OAuth credentials.
+- **No emails processed**: confirm the workflow is set to **Active**, and that there are genuinely unread emails in the inbox.
+- **Replies not sending**: re-check your SMTP app password — these expire if 2-Step Verification settings change.
