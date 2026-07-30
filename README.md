@@ -35,6 +35,7 @@ You need somewhere to run the workflow. Pick whichever fits you — you don't ne
 
 ### Option B — Self-hosted, local install with Docker
 Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+
 Watch this video to install N8N using Docker: https://www.youtube.com/watch?v=mJkvTP1q70s
 
 ## Step 2: Create a Google Cloud project and enable APIs
