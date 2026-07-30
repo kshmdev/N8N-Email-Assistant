@@ -31,33 +31,11 @@ You need somewhere to run the workflow. Pick whichever fits you — you don't ne
 
 1. Go to [n8n.io](https://n8n.io) and click **Get started for free**.
 2. Sign up and create a workspace. n8n Cloud gives you a hosted instance with a URL like `yourname.app.n8n.cloud` — no setup needed.
-3. Once your workspace loads, you're ready to import the workflow (Step 6).
+3. Once your workspace loads, you're ready to import the workflow by downloading the json file and importing it into the workflow.
 
 ### Option B — Self-hosted, local install with Docker
-
-> Note: the old standalone **n8n Desktop App** has been discontinued and is no longer maintained. Docker is the current, supported way to run n8n locally.
-
 Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
-
-```bash
-docker volume create n8n_data
-
-docker run -it --rm \
-  --name n8n \
-  -p 5678:5678 \
-  -v n8n_data:/home/node/.n8n \
-  docker.n8n.io/n8nio/n8n
-```
-
-Once it's running, open your browser to:
-
-```
-http://localhost:5678
-```
-
-The `-v n8n_data:/home/node/.n8n` part saves your workflows and credentials in a Docker volume, so they persist even if you stop and restart the container.
-
----
+Watch this video to install N8N using Docker: https://www.youtube.com/watch?v=mJkvTP1q70s
 
 ## Step 2: Create a Google Cloud project and enable APIs
 
